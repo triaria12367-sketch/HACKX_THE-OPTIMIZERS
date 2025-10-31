@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Women Safety QR Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #ffe6f2, #fff0f5);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* QR Page Styles */
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    #qrcode {
+      margin: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    h1 {
+      color: #d81b60;
+    }
+
+    p {
+      color: #555;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background: #d81b60;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+
+    .copy-btn:hover {
+      background: #a00037;
+    }
+
+    .copy-success {
+      margin-top: 10px;
+      color: #4caf50;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    /* Pledge Page Styles */
+    .pledge-page {
+      display: none;
+      padding: 40px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      max-width: 90%;
+      animation: fadeIn 0.8s ease;
+      z-index: 10;
+      position: relative;
+    }
+
+    .pledge-page h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      color: #d81b60;
+    }
+
+    .pledge-page button {
+      padding: 12px 24px;
+      font-size: 18px;
+      margin-top: 20px;
+      background: #d81b60;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .pledge-page button:hover {
+      background: #a00037;
+    }
+
+    /* Celebration Styles */
+    .celebration {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.95);
+      z-index: 100;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .congrats-message {
+      font-size: 2.5em;
+      color: #d81b60;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+      animation: bounce 0.8s ease;
+    }
+
+    .sub-message {
+      font-size: 1.2em;
+      color: #555;
+      margin-bottom: 30px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+      40% {transform: translateY(-20px);}
+      60% {transform: translateY(-10px);}
+    }
+
+    /* Confetti */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #d81b60;
+      opacity: 0.7;
+      border-radius: 50%;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <!-- QR Generator View -->
+  <div class="qr-container" id="qrView">
+    <h1>📱 Scan this QR to Take the Pledge</h1>
+    <div id="qrcode"></div>
+    <p>Use your phone camera or any QR scanner app</p>
+    <button class="copy-btn" id="copyBtn">📋 Copy Pledge Link</button>
+    <div class="copy-success" id="copySuccess">Link copied to clipboard!</div>
+  </div>
+
+  <!-- Pledge View -->
+  <div class="pledge-page" id="pledgeView">
+    <h1>🙏 I Take The Pledge</h1>
+    <p><strong>I promise to:</strong><br>
+       Respect every woman.<br>
+       Speak up against harassment.<br>
+       Be an ally in creating safer spaces.
+    </p>
+    <button id="pledgeBtn">✅ I Take This Pledge</button>
+    <p><a href="#" style="color: #d81b60; text-decoration: none; margin-top: 20px; display: inline-block;" onclick="showQRView()">← Go Back</a></p>
+  </div>
+
+  <!-- Celebration Screen -->
+  <div class="celebration" id="celebration">
+    <div class="congrats-message">🎉 Congratulations! 🎉</div>
+    <div class="sub-message">You’ve chosen the path of safety, respect, and courage.<br>Thank you for being an ally. 💜</div>
+    <button onclick="resetCelebration()" style="padding:12px 24px; background:#d81b60; color:white; border:none; border-radius:30px; cursor:pointer;">Continue</button>
+  </div>
+
+  <script>
+    const currentUrl = window.location.href.split('#')[0] + '#pledge';
+
+    // Generate QR
+    new QRCode(document.getElementById("qrcode"), {
+      text: currentUrl,
+      width: 220,
+      height: 220,
+      colorDark: "#d81b60",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    // Show Views
+    function showPledgeView() {
+      document.getElementById('qrView').style.display = 'none';
+      document.getElementById('pledgeView').style.display = 'block';
+      document.title = "Women Safety Pledge";
+    }
+
+    function showQRView() {
+      document.getElementById('pledgeView').style.display = 'none';
+      document.getElementById('qrView').style.display = 'flex';
+      document.title = "Women Safety QR Generator";
+    }
+
+    // Hash handling
+    window.addEventListener('load', () => {
+      if (window.location.hash === '#pledge') showPledgeView();
+      else showQRView();
+    });
+
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash === '#pledge') showPledgeView();
+      else showQRView();
+    });
+
+    // Copy link
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(currentUrl);
+        const msg = document.getElementById('copySuccess');
+        msg.style.opacity = "1";
+        setTimeout(() => msg.style.opacity = "0", 2000);
+      } catch (err) {
+        alert("Copy manually: " + currentUrl);
+      }
+    });
+
+    // Pledge button → Celebration
+    document.getElementById('pledgeBtn').addEventListener('click', () => {
+      // Hide pledge, show celebration
+      document.getElementById('pledgeView').style.display = 'none';
+      const celeb = document.getElementById('celebration');
+      celeb.style.display = 'flex';
+
+      // Start confetti
+      createConfetti();
+
+      // Optional: Play sound (uncomment if you add audio file)
+      // const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.wav');
+      // audio.play().catch(e => console.log("Audio play failed:", e));
+    });
+
+    function createConfetti() {
+      const colors = ['#d81b60', '#ff80ab', '#ff4081', '#f50057', '#e91e63', '#ffeb3b', '#ff9800'];
+      for (let i = 0; i < 150; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.classList.add('confetti');
+          confetti.style.left = Math.random() * 100 + 'vw';
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.width = (Math.random() * 10 + 5) + 'px';
+          confetti.style.height = confetti.style.width;
+          confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+          document.body.appendChild(confetti);
+
+          // Remove after animation
+          setTimeout(() => {
+            if (confetti && confetti.parentNode) {
+              confetti.parentNode.removeChild(confetti);
+            }
+          }, 5000);
+        }, i * 20); // Staggered effect
+      }
+    }
+
+    function resetCelebration() {
+      document.getElementById('celebration').style.display = 'none';
+      showQRView();
+    }
+  </script>
+</body>
+</html>

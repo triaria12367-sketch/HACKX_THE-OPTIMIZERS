@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePath - Gamification & Rewards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1a1c2c;
+            --secondary: #2d3047;
+            --accent: #00b4d8;
+            --danger: #e63946;
+            --success: #2a9d8f;
+            --text: #f1faee;
+            --card: #3a3e5c;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, #bd7f9c 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(26, 28, 44, 0.9);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            color: var(--accent);
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-weight: 700;
+            font-size: 24px;
+            background: linear-gradient(90deg, var(--accent) 0%, #90e0ef 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 30px 0;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+
+        .page-title span {
+            color: var(--accent);
+        }
+
+        /* User Profile Card */
+        .profile-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-info h2 {
+            margin-bottom: 5px;
+        }
+
+        .level-badge {
+            background: linear-gradient(135deg, var(--accent) 0%, #90e0ef 100%);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .points-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 15px;
+            border-radius: 20px;
+        }
+
+        .points-display i {
+            color: var(--gold);
+        }
+
+        /* Progress Section */
+        .progress-section {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--secondary);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, #90e0ef 100%);
+            border-radius: 5px;
+            width: 65%; /* This would be dynamic */
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #a8dadc;
+        }
+
+        /* Badges Section */
+        .badges-section {
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+        }
+
+        .view-all {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .badge-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .badge-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .badge-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.8rem;
+        }
+
+        .badge-icon.gold {
+            background: linear-gradient(135deg, var(--gold) 0%, #ffec80 100%);
+            color: #8b7500;
+        }
+
+        .badge-icon.silver {
+            background: linear-gradient(135deg, var(--silver) 0%, #e0e0e0 100%);
+            color: #696969;
+        }
+
+        .badge-icon.bronze {
+            background: linear-gradient(135deg, var(--bronze) 0%, #e39e61 100%);
+            color: #8b4513;
+        }
+
+        .badge-icon.blue {
+            background: linear-gradient(135deg, var(--accent) 0%, #90e0ef 100%);
+            color: var(--primary);
+        }
+
+        .badge-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .badge-desc {
+            font-size: 0.8rem;
+            color: #a8dadc;
+        }
+
+        .locked {
+            opacity: 0.6;
+            filter: grayscale(1);
+        }
+
+        /* Activities Section */
+        .activities-section {
+            margin-bottom: 30px;
+        }
+
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .activity-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--secondary);
+            color: var(--accent);
+        }
+
+        .activity-title {
+            font-weight: 600;
+        }
+
+        .activity-points {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .activity-desc {
+            margin-bottom: 15px;
+            color: #a8dadc;
+        }
+
+        .activity-btn {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .activity-btn:hover {
+            background: #0099bc;
+        }
+
+        .activity-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: none;
+            background: var(--secondary);
+            color: var(--text);
+            resize: vertical;
+        }
+
+        .activity-input:focus {
+            outline: none;
+            border: 2px solid var(--accent);
+        }
+
+        /* Rewards Section */
+        .rewards-section {
+            margin-bottom: 30px;
+        }
+
+        .rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .reward-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .reward-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .reward-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .reward-desc {
+            margin-bottom: 15px;
+            color: #a8dadc;
+            font-size: 0.9rem;
+        }
+
+        .reward-points {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .reward-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            background: var(--accent);
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reward-btn:hover {
+            background: #0099bc;
+        }
+
+        .reward-btn:disabled {
+            background: var(--secondary);
+            color: #a8dadc;
+            cursor: not-allowed;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .profile-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .badges-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .activities-grid, .rewards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .toast {
+                left: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <h1>SafePath</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container main-content">
+        <h1 class="page-title">Gamification <span>& Rewards</span></h1>
+        
+        <!-- User Profile Card -->
+        <div class="profile-card">
+            <div class="avatar">S</div>
+            <div class="profile-info">
+                <h2>Sarah Johnson</h2>
+                <div class="level-badge">Level 5 Safety Scout</div>
+            </div>
+            <div class="points-display">
+                <i class="fas fa-star"></i>
+                <span id="userPoints">1,250</span> points
+            </div>
+        </div>
+        
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <h3>Progress to Next Level</h3>
+                <span>Level 6 (1,500 points)</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="levelProgress"></div>
+            </div>
+            <div class="progress-info">
+                <span>1,250 points</span>
+                <span>1,500 points</span>
+            </div>
+        </div>
+        
+        <!-- Badges Section -->
+        <div class="badges-section">
+            <div class="section-header">
+                <h2 class="section-title">Your Badges</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="badges-grid">
+                <div class="badge-card">
+                    <div class="badge-icon gold">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="badge-title">Photo Pioneer</div>
+                    <div class="badge-desc">Uploaded 10+ safety photos</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-icon silver">
+                        <i class="fas fa-flag"></i>
+                    </div>
+                    <div class="badge-title">Incident Reporter</div>
+                    <div class="badge-desc">Reported 5+ incidents</div>
+                </div>
+                
+                <div class="badge-card">
+                    <div class="badge-icon bronze">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="badge-title">Review Contributor</div>
+                    <div class="badge-desc">Posted 20+ safety reviews</div>
+                </div>
+                
+                <div class="badge-card locked" id="pathfinderBadge">
+                    <div class="badge-icon blue">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <div class="badge-title">Pathfinder</div>
+                    <div class="badge-desc">Mapped 5+ safe routes</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Activities Section -->
+        <div class="activities-section">
+            <div class="section-header">
+                <h2 class="section-title">Earn Points</h2>
+            </div>
+            <div class="activities-grid">
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <div class="activity-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <h3 class="activity-title">Upload Safety Photos</h3>
+                        <div class="activity-points">
+                            <i class="fas fa-star"></i> 25
+                        </div>
+                    </div>
+                    <p class="activity-desc">Share photos of well-lit paths, safe areas, or potential hazards to help others.</p>
+                    <input type="file" id="photoUpload" accept="image/*" style="display: none;">
+                    <button class="activity-btn" id="uploadPhotos">Upload Photos</button>
+                </div>
+                
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <div class="activity-icon">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                        <h3 class="activity-title">Report Incidents</h3>
+                        <div class="activity-points">
+                            <i class="fas fa-star"></i> 50
+                        </div>
+                    </div>
+                    <p class="activity-desc">Report safety incidents or hazards to keep your community informed and safe.</p>
+                    <textarea class="activity-input" id="incidentReport" placeholder="Describe the incident..." style="display: none;"></textarea>
+                    <button class="activity-btn" id="reportIncident">Report Incident</button>
+                </div>
+                
+                <div class="activity-card">
+                    <div class="activity-header">
+                        <div class="activity-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="activity-title">Write Safety Reviews</h3>
+                        <div class="activity-points">
+                            <i class="fas fa-star"></i> 15
+                        </div>
+                    </div>
+                    <p class="activity-desc">Share your experiences and rate the safety of different areas and routes.</p>
+                    <textarea class="activity-input" id="safetyReview" placeholder="Write your review..." style="display: none;"></textarea>
+                    <button class="activity-btn" id="writeReview">Write Review</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Rewards Section -->
+        <div class="rewards-section">
+            <div class="section-header">
+                <h2 class="section-title">Redeem Rewards</h2>
+            </div>
+            <div class="rewards-grid">
+                <div class="reward-card">
+                    <div class="reward-icon">
+                        <i class="fas fa-coffee"></i>
+                    </div>
+                    <h3 class="reward-title">Free Coffee</h3>
+                    <p class="reward-desc">Redeem your points for a free coffee at participating cafes.</p>
+                    <div class="reward-points">500 points</div>
+                    <button class="reward-btn" id="redeemCoffee">Redeem</button>
+                </div>
+                
+                <div class="reward-card">
+                    <div class="reward-icon">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h3 class="reward-title">Movie Tickets</h3>
+                    <p class="reward-desc">Enjoy a night out with movie tickets for you and a friend.</p>
+                    <div class="reward-points">1,000 points</div>
+                    <button class="reward-btn" id="redeemMovie">Redeem</button>
+                </div>
+                
+                <div class="reward-card">
+                    <div class="reward-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h3 class="reward-title">Premium Safety Kit</h3>
+                    <p class="reward-desc">A safety kit including personal alarm, flashlight, and other safety items.</p>
+                    <div class="reward-points">2,000 points</div>
+                    <button class="reward-btn" id="redeemKit">Redeem</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Operation completed successfully!</span>
+    </div>
+
+    <script>
+        // DOM Elements
+        const userPointsElement = document.getElementById('userPoints');
+        const levelProgressElement = document.getElementById('levelProgress');
+        const uploadPhotosBtn = document.getElementById('uploadPhotos');
+        const photoUploadInput = document.getElementById('photoUpload');
+        const reportIncidentBtn = document.getElementById('reportIncident');
+        const incidentReportInput = document.getElementById('incidentReport');
+        const writeReviewBtn = document.getElementById('writeReview');
+        const safetyReviewInput = document.getElementById('safetyReview');
+        const redeemCoffeeBtn = document.getElementById('redeemCoffee');
+        const redeemMovieBtn = document.getElementById('redeemMovie');
+        const redeemKitBtn = document.getElementById('redeemKit');
+        const pathfinderBadge = document.getElementById('pathfinderBadge');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        // User data
+        let userPoints = 1250;
+        const pointsNeededForNextLevel = 1500;
+        let pathfinderUnlocked = false;
+        
+        // Show toast notification
+        function showToast(message, isError = false) {
+            toastMessage.textContent = message;
+            toast.className = 'toast';
+            
+            if (isError) {
+                toast.classList.add('error');
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Initialize progress bar
+        function updateProgressBar() {
+            const progressPercentage = (userPoints / pointsNeededForNextLevel) * 100;
+            levelProgressElement.style.width = `${Math.min(progressPercentage, 100)}%`;
+        }
+        
+        // Update points display
+        function updatePointsDisplay() {
+            userPointsElement.textContent = userPoints.toLocaleString();
+            updateProgressBar();
+            
+            // Update redeem button states
+            redeemCoffeeBtn.disabled = userPoints < 500;
+            redeemMovieBtn.disabled = userPoints < 1000;
+            redeemKitBtn.disabled = userPoints < 2000;
+            
+            // Check for level up
+            if (userPoints >= pointsNeededForNextLevel) {
+                showToast('Congratulations! You reached Level 6!');
+            }
+            
+            // Check for Pathfinder badge
+            if (userPoints >= 1000 && !pathfinderUnlocked) {
+                pathfinderUnlocked = true;
+                pathfinderBadge.classList.remove('locked');
+                showToast('Congratulations! You unlocked the Pathfinder badge!');
+            }
+        }
+        
+        // Simulate activity completion
+        function completeActivity(activityName, points) {
+            userPoints += points;
+            updatePointsDisplay();
+            
+            // Show success message
+            showToast(`+${points} points! You've earned points for ${activityName}.`);
+        }
+        
+        // Handle image upload
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type.startsWith('image/')) {
+                    // Simulate successful upload
+                    completeActivity('uploading safety photos', 25);
+                    // Reset input
+                    photoUploadInput.value = '';
+                } else {
+                    showToast('Please upload a valid image file.', true);
+                }
+            }
+        }
+        
+        // Handle incident report
+        function handleIncidentReport() {
+            const report = incidentReportInput.value.trim();
+            if (report) {
+                completeActivity('reporting an incident', 50);
+                incidentReportInput.value = '';
+                incidentReportInput.style.display = 'none';
+                reportIncidentBtn.textContent = 'Report Incident';
+            } else {
+                showToast('Please enter an incident description.', true);
+            }
+        }
+        
+        // Handle safety review
+        function handleSafetyReview() {
+            const review = safetyReviewInput.value.trim();
+            if (review) {
+                completeActivity('writing a safety review', 15);
+                safetyReviewInput.value = '';
+                safetyReviewInput.style.display = 'none';
+                writeReviewBtn.textContent = 'Write Review';
+            } else {
+                showToast('Please enter a review.', true);
+            }
+        }
+        
+        // Redeem a reward
+        function redeemReward(rewardName, pointsCost) {
+            if (userPoints >= pointsCost) {
+                userPoints -= pointsCost;
+                updatePointsDisplay();
+                showToast(`You've successfully redeemed ${pointsCost} points for ${rewardName}!`);
+            } else {
+                showToast(`You need ${pointsCost - userPoints} more points to redeem this reward.`, true);
+            }
+        }
+        
+        // Event listeners for activity buttons
+        uploadPhotosBtn.addEventListener('click', () => {
+            photoUploadInput.click();
+        });
+        
+        photoUploadInput.addEventListener('change', handleImageUpload);
+        
+        reportIncidentBtn.addEventListener('click', () => {
+            if (incidentReportInput.style.display === 'none') {
+                incidentReportInput.style.display = 'block';
+                reportIncidentBtn.textContent = 'Submit Report';
+            } else {
+                handleIncidentReport();
+            }
+        });
+        
+        writeReviewBtn.addEventListener('click', () => {
+            if (safetyReviewInput.style.display === 'none') {
+                safetyReviewInput.style.display = 'block';
+                writeReviewBtn.textContent = 'Submit Review';
+            } else {
+                handleSafetyReview();
+            }
+        });
+        
+        // Event listeners for redeem buttons
+        redeemCoffeeBtn.addEventListener('click', () => {
+            redeemReward('a free coffee', 500);
+        });
+        
+        redeemMovieBtn.addEventListener('click', () => {
+            redeemReward('movie tickets', 1000);
+        });
+        
+        redeemKitBtn.addEventListener('click', () => {
+            redeemReward('a premium safety kit', 2000);
+        });
+        
+        // Initialize the page
+        updatePointsDisplay();
+    </script>
+</body>
+</html>

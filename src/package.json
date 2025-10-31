@@ -1,0 +1,46 @@
+{
+  "name": "safepath-guardian-ai",
+  "version": "1.0.0",
+  "description": "SafePath: OmniDimension Guardian AI — Real-time safety assistant with AI chat, video surveillance, and risk forecasting.",
+  "main": "app.py",
+  "scripts": {
+    "start": "python app.py",
+    "dev": "nodemon --exec python app.py",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "AI",
+    "Flask",
+    "Safety",
+    "Guardian",
+    "Video",
+    "Emotion Detection",
+    "Risk Forecast",
+    "SafePath"
+  ],
+  "author": "Team SafePath",
+  "license": "MIT",
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "axios": "^1.7.3",
+    "chart.js": "^4.4.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.3.0",
+    "nodemon": "^3.1.3",
+    "prettier": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TeamSafePath/guardian-ai"
+  },
+  "bugs": {
+    "url": "https://github.com/TeamSafePath/guardian-ai/issues"
+  },
+  "homepage": "https://safepath-ai-demo.vercel.app"
+}

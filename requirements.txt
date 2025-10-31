@@ -1,0 +1,31 @@
+# Core Flask Web Server
+Flask==3.0.3
+Flask-Cors==4.0.1
+
+# Video & File Handling
+Werkzeug==3.0.3
+itsdangerous==2.2.0
+
+# Data Processing & Utils
+numpy==1.26.4
+pandas==2.2.2
+
+# Machine Learning & AI (Optional but Recommended)
+scikit-learn==1.5.1
+joblib==1.4.2
+
+# Face & Emotion Detection (Optional Advanced Feature)
+opencv-python==4.10.0.84
+deepface==0.0.93
+tensorflow==2.17.0
+keras==3.4.1
+
+# Time & Forecasting Tools
+python-dateutil==2.9.0
+pytz==2024.1
+
+# Security & Networking
+requests==2.32.3
+
+# For running locally and saving video recordings
+base58==2.1.1

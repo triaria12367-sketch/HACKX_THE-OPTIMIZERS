@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafePath - Emergency Sentiment Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1a1c2c;
+            --secondary: #2d3047;
+            --accent: #00b4d8;
+            --danger: #e63946;
+            --warning: #f4a261;
+            --success: #2a9d8f;
+            --text: #f1faee;
+            --card: #3a3e5c;
+            --background: linear-gradient(135deg, var(--primary) 0%, #bd7f9c 100%);
+        }
+
+        [data-theme="light"] {
+            --primary: #f1faee;
+            --secondary: #e8e8e8;
+            --accent: #00b4d8;
+            --danger: #e63946;
+            --warning: #f4a261;
+            --success: #2a9d8f;
+            --text: #1a1c2c;
+            --card: #ffffff;
+            --background: linear-gradient(135deg, #bd7f9c 0%, #a8dadc 100%);
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(26, 28, 44, 0.9);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+            border-radius: 15px;
+        }
+
+        [data-theme="light"] header {
+            background-color: rgba(241, 250, 238, 0.9);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .logo i {
+            color: var(--accent);
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-weight: 700;
+            font-size: 24px;
+            background: linear-gradient(90deg, var(--accent) 0%, #90e0ef 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card);
+            padding: 10px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .toggle-icon {
+            font-size: 20px;
+            color: var(--accent);
+        }
+
+        .toggle-text {
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+
+        .left-panel {
+            flex: 1;
+        }
+
+        .right-panel {
+            flex: 1;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title span {
+            color: var(--accent);
+        }
+
+        /* Incident Reports Section */
+        .incidents-section {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .incidents-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            background: var(--secondary);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .incidents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Scrollbar styling */
+        .incidents-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .incidents-list::-webkit-scrollbar-track {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+
+        .incidents-list::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .incident-card {
+            background: var(--secondary);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            transition: all 0.3s;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .incident-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .incident-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+        }
+
+        .incident-icon.traffic {
+            background: rgba(244, 162, 97, 0.2);
+            color: var(--warning);
+        }
+
+        .incident-icon.accident {
+            background: rgba(230, 57, 70, 0.2);
+            color: var(--danger);
+        }
+
+        .incident-icon.alert {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .incident-icon.safety {
+            background: rgba(42, 157, 143, 0.2);
+            color: var(--success);
+        }
+
+        .incident-content {
+            flex: 1;
+        }
+
+        .incident-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        .incident-desc {
+            color: var(--text);
+            opacity: 0.8;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .incident-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text);
+            opacity: 0.7;
+        }
+
+        .incident-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Dark Mode Section */
+        .dark-mode-section {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode-content {
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .dark-mode-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .dark-mode-desc {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .theme-previews {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .theme-preview {
+            width: 100px;
+            height: 150px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .theme-preview:hover {
+            transform: translateY(-5px);
+        }
+
+        .theme-preview.light {
+            background: linear-gradient(135deg, #bd7f9c 0%, #a8dadc 100%);
+        }
+
+        .theme-preview.dark {
+            background: linear-gradient(135deg, #1a1c2c 0%, #bd7f9c 100%);
+        }
+
+        .theme-preview::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .theme-preview.active {
+            outline: 3px solid var(--accent);
+        }
+
+        .theme-name {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Sentiment Analysis Styles */
+        .sentiment-container {
+            background: var(--card);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sentiment-header {
+            background: var(--secondary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .sentiment-main {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px; /* Increased spacing */
+        }
+
+        .input-container {
+            border: 2px solid var(--secondary);
+            border-radius: 10px;
+            padding: 20px; /* Increased padding */
+            margin-bottom: 25px; /* Increased spacing */
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 16px;
+            padding: 15px; /* Increased padding */
+            border-radius: 5px;
+            background: var(--secondary);
+            color: var(--text);
+        }
+
+        /* OR Divider Styles */
+        .or-divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0; /* Increased spacing */
+            color: var(--text);
+            opacity: 0.7;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--secondary);
+        }
+
+        .or-divider span {
+            padding: 0 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .voice-input {
+            text-align: center;
+            padding: 20px;
+            background: var(--secondary);
+            border-radius: 10px;
+            margin-bottom: 25px; /* Increased spacing */
+        }
+
+        .mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mic-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .mic-btn.listening {
+            background: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px; /* Increased spacing */
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .analyze-btn {
+            background: var(--accent);
+            color: var(--primary);
+        }
+
+        .analyze-btn:hover {
+            background: #0099bc;
+        }
+
+        .emergency-btn {
+            background: var(--danger);
+            color: white;
+        }
+
+        .emergency-btn:hover {
+            background: #a93226;
+        }
+
+        .results-section {
+            background: var(--secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .sentiment-result {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .sentiment-icon {
+            font-size: 40px;
+            margin-right: 15px;
+        }
+
+        .sentiment-text {
+            flex: 1;
+        }
+
+        .priority-indicator {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .low {
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+
+        .medium {
+            background: rgba(243, 156, 18, 0.2);
+            color: var(--warning);
+        }
+
+        .high {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--danger);
+        }
+
+        .emergency {
+            background: var(--danger);
+            color: white;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.8; }
+        }
+
+        .confidence-meter {
+            height: 10px;
+            background: var(--secondary);
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .confidence-level {
+            height: 100%;
+            border-radius: 5px;
+        }
+
+        .confidence-low {
+            background: var(--success);
+            width: 30%;
+        }
+
+        .confidence-medium {
+            background: var(--warning);
+            width: 60%;
+        }
+
+        .confidence-high {
+            background: var(--danger);
+            width: 90%;
+        }
+
+        .actions {
+            margin-top: 20px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .escalate-btn {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+        }
+
+        .escalate-btn:hover {
+            background: #2980b9;
+        }
+
+        .status-message {
+            text-align: center;
+            margin: 15px 0; /* Increased spacing */
+            font-style: italic;
+            color: var(--text);
+            opacity: 0.7;
+        }
+
+        .transcript {
+            background: var(--secondary);
+            border-left: 4px solid var(--accent);
+            padding: 15px; /* Increased padding */
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .sentiment-footer {
+            text-align: center;
+            padding: 15px;
+            background: var(--secondary);
+            color: var(--text);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .theme-previews {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .incidents-filters {
+                justify-content: center;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <h1>SafePath</h1>
+                </div>
+                <div class="theme-toggle" id="themeToggle">
+                    <div class="toggle-icon">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <div class="toggle-text">Dark Mode</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Incident Reports Section -->
+                <section class="incidents-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Incident <span>Reports</span>
+                    </h2>
+                    
+                    <div class="incidents-filters">
+                        <button class="filter-btn active" data-filter="all">All Incidents</button>
+                        <button class="filter-btn" data-filter="traffic">Traffic</button>
+                        <button class="filter-btn" data-filter="accident">Accidents</button>
+                        <button class="filter-btn" data-filter="alert">Alerts</button>
+                    </div>
+                    
+                    <div class="incidents-list" id="incidentsList">
+                        <!-- Incident cards will be added here dynamically -->
+                    </div>
+                </section>
+                
+                <!-- Dark Mode Section -->
+                <section class="dark-mode-section">
+                    <div class="dark-mode-content">
+                        <div class="dark-mode-icon">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <h2 class="section-title">Switch <span>Themes</span></h2>
+                        <p class="dark-mode-desc">
+                            Choose between light and dark mode based on your preference. 
+                            Dark mode is easier on the eyes in low-light conditions.
+                        </p>
+                        
+                        <div class="theme-previews">
+                            <div class="theme-preview light" data-theme="light">
+                                <div class="theme-name">Light Mode</div>
+                            </div>
+                            <div class="theme-preview dark active" data-theme="dark">
+                                <div class="theme-name">Dark Mode</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Right Panel - Sentiment Analysis -->
+            <div class="right-panel">
+                <div class="sentiment-container">
+                    <div class="sentiment-header">
+                        <h1>AI Sentiment Analysis</h1>
+                        <p class="subtitle">Analyze incident reports and prioritize emergencies based on tone</p>
+                    </div>
+                    
+                    <div class="sentiment-main">
+                        <div class="input-section">
+                            <div class="input-header">
+                                <h2>Text Input</h2>
+                            </div>
+                            
+                            <div class="input-container">
+                                <textarea placeholder="Describe the incident in detail..."></textarea>
+                            </div>
+                            
+                            <!-- OR Divider -->
+                            <div class="or-divider">
+                                <span>OR</span>
+                            </div>
+                            
+                            <div class="voice-input">
+                                <h2>Voice Input</h2>
+                                <button class="mic-btn" id="mic-btn">
+                                    <i>🎤</i>
+                                </button>
+                                <div class="status-message" id="voice-status">Press microphone to start recording</div>
+                                <div class="transcript" id="voice-transcript"></div>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button class="analyze-btn" id="analyze-btn">Analyze Sentiment</button>
+                                <button class="emergency-btn">Emergency Escalation</button>
+                            </div>
+                        </div>
+                        
+                        <div class="results-section" id="results-section">
+                            <h2 class="results-header">Analysis Results</h2>
+                            
+                            <div class="sentiment-result">
+                                <div class="sentiment-icon" id="sentiment-icon">😐</div>
+                                <div class="sentiment-text">
+                                    <h3 id="sentiment-title">Neutral Tone</h3>
+                                    <p id="sentiment-desc">The tone doesn't indicate urgency or emergency.</p>
+                                    <div class="confidence-meter">
+                                        <div class="confidence-level confidence-low" id="confidence-level"></div>
+                                    </div>
+                                </div>
+                                <div class="priority-indicator low" id="priority-indicator">Low Priority</div>
+                            </div>
+                            
+                            <div class="actions">
+                                <button class="escalate-btn" id="escalate-btn">Escalate to Emergency Team</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sentiment-footer">
+                        <p>AI Sentiment Analysis System • Detects panic and urgency in incident reports</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Operation completed successfully!</span>
+    </div>
+
+    <script>
+        // Sample incident data
+        const incidentData = [
+            {
+                type: "traffic",
+                title: "Traffic jam near Central Square 🚧",
+                description: "Major traffic congestion reported due to road repairs. Expected clearance in 45 minutes.",
+                time: "15 min ago",
+                icon: "fas fa-traffic-light"
+            },
+            {
+                type: "accident",
+                title: "Accident at Riverside Drive 🚑",
+                description: "Two-car collision reported. Emergency services on site. Avoid the area if possible.",
+                time: "25 min ago",
+                icon: "fas fa-car-crash"
+            },
+            {
+                type: "alert",
+                title: "Weather Alert: Heavy rain expected 🌧️",
+                description: "Heavy rainfall predicted for the next 2 hours. Drive safely and allow extra travel time.",
+                time: "35 min ago",
+                icon: "fas fa-cloud-showers-heavy"
+            },
+            {
+                type: "safety",
+                title: "Safety Update: Street lights out on Oak Avenue",
+                description: "Multiple street lights reported out between 1st and 3rd street. Use caution when walking in this area.",
+                time: "50 min ago",
+                icon: "fas fa-lightbulb"
+            },
+            {
+                type: "traffic",
+                title: "Road closure on Main Street 🚧",
+                description: "Main Street closed between Elm and Pine for parade setup. Detours in place.",
+                time: "1 hour ago",
+                icon: "fas fa-road"
+            },
+            {
+                type: "alert",
+                title: "Public Safety Announcement",
+                description: "Police activity reported in downtown area. Please avoid 5th and Market streets until further notice.",
+                time: "2 hours ago",
+                icon: "fas fa-bullhorn"
+            }
+        ];
+
+        // DOM Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const incidentsList = document.getElementById('incidentsList');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const themePreviews = document.querySelectorAll('.theme-preview');
+        
+        // Sentiment Analysis Elements
+        const micBtn = document.getElementById('mic-btn');
+        const voiceStatus = document.getElementById('voice-status');
+        const voiceTranscript = document.getElementById('voice-transcript');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const resultsSection = document.getElementById('results-section');
+        const sentimentIcon = document.getElementById('sentiment-icon');
+        const sentimentTitle = document.getElementById('sentiment-title');
+        const sentimentDesc = document.getElementById('sentiment-desc');
+        const confidenceLevel = document.getElementById('confidence-level');
+        const priorityIndicator = document.getElementById('priority-indicator');
+        const escalateBtn = document.getElementById('escalate-btn');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+
+        // Current theme state
+        let currentTheme = 'dark';
+
+        // Initialize the page
+        function initPage() {
+            renderIncidents('all');
+            setupEventListeners();
+        }
+
+        // Render incidents based on filter
+        function renderIncidents(filter) {
+            incidentsList.innerHTML = '';
+            
+            const filteredIncidents = filter === 'all' 
+                ? incidentData 
+                : incidentData.filter(incident => incident.type === filter);
+            
+            filteredIncidents.forEach(incident => {
+                const incidentCard = document.createElement('div');
+                incidentCard.className = 'incident-card';
+                incidentCard.innerHTML = `
+                    <div class="incident-icon ${incident.type}">
+                        <i class="${incident.icon}"></i>
+                    </div>
+                    <div class="incident-content">
+                        <h3 class="incident-title">${incident.title}</h3>
+                        <p class="incident-desc">${incident.description}</p>
+                        <div class="incident-meta">
+                            <div class="incident-time">
+                                <i class="fas fa-clock"></i>
+                                <span>${incident.time}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                incidentsList.appendChild(incidentCard);
+            });
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Theme toggle
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // Filter buttons
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active state
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Filter incidents
+                    const filter = button.getAttribute('data-filter');
+                    renderIncidents(filter);
+                });
+            });
+            
+            // Theme previews
+            themePreviews.forEach(preview => {
+                preview.addEventListener('click', () => {
+                    const theme = preview.getAttribute('data-theme');
+                    setTheme(theme);
+                    
+                    // Update active state
+                    themePreviews.forEach(p => p.classList.remove('active'));
+                    preview.classList.add('active');
+                });
+            });
+            
+            // Voice recording simulation
+            micBtn.addEventListener('click', function() {
+                if (micBtn.classList.contains('listening')) {
+                    // Stop recording
+                    micBtn.classList.remove('listening');
+                    voiceStatus.textContent = "Recording stopped. Press microphone to start again.";
+                    
+                    // Simulate transcript
+                    voiceTranscript.textContent = "There's been an accident on Main Street! A car hit a pedestrian and there's blood everywhere. We need an ambulance immediately!";
+                    
+                    // Analyze automatically
+                    simulateAnalysis('emergency');
+                } else {
+                    // Start recording
+                    micBtn.classList.add('listening');
+                    voiceStatus.textContent = "Listening... Speak clearly into your microphone.";
+                    voiceTranscript.textContent = "";
+                }
+            });
+            
+            // Analyze button click
+            analyzeBtn.addEventListener('click', function() {
+                // For demo purposes, randomly pick a sentiment
+                const sentiments = ['neutral', 'concerned', 'urgent', 'emergency'];
+                const randomSentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
+                
+                simulateAnalysis(randomSentiment);
+            });
+            
+            // Escalate button
+            escalateBtn.addEventListener('click', function() {
+                showToast('Incident has been escalated to emergency response team!');
+            });
+            
+            // Simulate emergency button
+            document.querySelector('.emergency-btn').addEventListener('click', function() {
+                simulateAnalysis('emergency');
+            });
+        }
+
+        // Toggle between light and dark themes
+        function toggleTheme() {
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+            
+            // Update theme previews
+            themePreviews.forEach(preview => {
+                preview.classList.remove('active');
+                if (preview.getAttribute('data-theme') === newTheme) {
+                    preview.classList.add('active');
+                }
+            });
+        }
+
+        // Set the theme
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Update toggle button text and icon
+            const toggleIcon = themeToggle.querySelector('.toggle-icon i');
+            const toggleText = themeToggle.querySelector('.toggle-text');
+            
+            if (theme === 'dark') {
+                toggleIcon.className = 'fas fa-moon';
+                toggleText.textContent = 'Dark Mode';
+            } else {
+                toggleIcon.className = 'fas fa-sun';
+                toggleText.textContent = 'Light Mode';
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message, isError = false) {
+            toastMessage.textContent = message;
+            toast.className = 'toast';
+            
+            if (isError) {
+                toast.classList.add('error');
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Simulate sentiment analysis
+        function simulateAnalysis(sentiment) {
+            resultsSection.style.display = 'block';
+            
+            switch(sentiment) {
+                case 'emergency':
+                    sentimentIcon.textContent = "😱";
+                    sentimentTitle.textContent = "Panic Tone Detected";
+                    sentimentDesc.textContent = "Extreme urgency detected in voice/text. Immediate response required.";
+                    confidenceLevel.className = "confidence-level confidence-high";
+                    confidenceLevel.style.width = "95%";
+                    priorityIndicator.className = "priority-indicator emergency";
+                    priorityIndicator.textContent = "EMERGENCY";
+                    break;
+                    
+                case 'urgent':
+                    sentimentIcon.textContent = "😨";
+                    sentimentTitle.textContent = "Urgent Tone Detected";
+                    sentimentDesc.textContent = "Heightened urgency detected. Prioritize this incident.";
+                    confidenceLevel.className = "confidence-level confidence-high";
+                    confidenceLevel.style.width = "85%";
+                    priorityIndicator.className = "priority-indicator high";
+                    priorityIndicator.textContent = "High Priority";
+                    break;
+                    
+                case 'concerned':
+                    sentimentIcon.textContent = "😟";
+                    sentimentTitle.textContent = "Concerned Tone Detected";
+                    sentimentDesc.textContent = "Moderate concern detected. Monitor this incident.";
+                    confidenceLevel.className = "confidence-level confidence-medium";
+                    confidenceLevel.style.width = "65%";
+                    priorityIndicator.className = "priority-indicator medium";
+                    priorityIndicator.textContent = "Medium Priority";
+                    break;
+                    
+                default:
+                    sentimentIcon.textContent = "😐";
+                    sentimentTitle.textContent = "Neutral Tone";
+                    sentimentDesc.textContent = "The tone doesn't indicate urgency or emergency.";
+                    confidenceLevel.className = "confidence-level confidence-low";
+                    confidenceLevel.style.width = "30%";
+                    priorityIndicator.className = "priority-indicator low";
+                    priorityIndicator.textContent = "Low Priority";
+            }
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize the page when loaded
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>
