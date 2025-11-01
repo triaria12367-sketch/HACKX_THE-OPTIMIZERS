@@ -93,21 +93,15 @@ The app will start at: [http://localhost:3000](http://localhost:3000)
     <td align="center"><b>🗺️ Real-Time Safe Route Map</b></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/anjali-0404/HACKX_THE-OPTIMIZERS/assets/7ab56f20-2d08-4575-9272-1a9b51283a2f" width="400"/></td>
-    <td><img src="https://github.com/anjali-0404/HACKX_THE-OPTIMIZERS/assets/b5360077-7309-49f3-b154-dc39dd780ff5" width="400"/></td>
-    <td><img src="https://github.com/anjali-0404/HACKX_THE-OPTIMIZERS/assets/d260d480-decb-4d9b-a086-3b2b0cb0238a" width="400"/></td>
-  </tr>
-</table>
-
----
-
-### 🖼️ Additional Screens
-
-<p align="center">
+   <p align="center">
   <img src="fr1.png" width="400" alt="SafePath Screen 1"/>
   <img src="fr2.png" width="400" alt="SafePath Screen 2"/>
   <img src="fr5.png" width="400" alt="SafePath Screen 3"/>
 </p>
+  </tr>
+</table>
+
+---
 
 ---
 
