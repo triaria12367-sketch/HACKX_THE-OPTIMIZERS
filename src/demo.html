@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -791,7 +791,89 @@
             border-radius: 8px;
             background: black;
         }
-          .image-container {
+        
+        /* Video Recording Controls */
+        .video-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .record-btn {
+            background: var(--danger);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .record-btn:hover {
+            background: #a93226;
+        }
+        
+        .record-btn.recording {
+            background: #ff0000;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .stop-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stop-btn:hover {
+            background: var(--primary);
+        }
+        
+        .download-btn {
+            background: var(--success);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .download-btn:hover {
+            background: #1e7d5e;
+        }
+        
+        .recording-status {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            color: var(--danger);
+        }
+        
+        .recording-timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .image-container {
             position: relative;
             display: inline-block;
         }
@@ -1723,6 +1805,22 @@
             <button id="startVoiceBtn">Start Voice Command</button>
             <button id="startLiveVideoBtn">Start Live Video</button>
             <video id="liveVideo" autoplay playsinline></video>
+            
+            <!-- Video Recording Controls -->
+            <div class="video-controls">
+                <button id="recordBtn" class="record-btn">
+                    <i class="fas fa-video"></i> Start Recording
+                </button>
+                <button id="stopBtn" class="stop-btn" style="display: none;">
+                    <i class="fas fa-stop"></i> Stop Recording
+                </button>
+                <button id="downloadBtn" class="download-btn" style="display: none;">
+                    <i class="fas fa-download"></i> Download Video
+                </button>
+            </div>
+            
+            <div class="recording-status" id="recordingStatus"></div>
+            <div class="recording-timer" id="recordingTimer"></div>
         </div>
     </div>
     <button onclick="getRiskForecast()">🔮 Get 24 hr Risk Forecast</button>
@@ -3094,7 +3192,7 @@
                 }
             }, 30000);
         }
-        // New Emergency Help Initialization
+        // New Emergency Help Initialization with Video Recording
         function initEmergencyHelp() {
             const emergencyBtn = document.getElementById('emergencyHelpBtn');
             const emergencyModal = document.getElementById('emergencyHelpModal');
@@ -3103,9 +3201,18 @@
             const startVoiceBtn = document.getElementById('startVoiceBtn');
             const startLiveVideoBtn = document.getElementById('startLiveVideoBtn');
             const liveVideo = document.getElementById('liveVideo');
+            const recordBtn = document.getElementById('recordBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const recordingStatus = document.getElementById('recordingStatus');
+            const recordingTimer = document.getElementById('recordingTimer');
 
             let emergencySpeechRecognition = null;
             let videoStream = null;
+            let mediaRecorder = null;
+            let recordedChunks = [];
+            let recordingStartTime = null;
+            let timerInterval = null;
 
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
@@ -3133,6 +3240,7 @@
             closeEmergency.addEventListener('click', () => {
                 emergencyModal.style.display = 'none';
                 stopVideo();
+                stopRecording();
             });
 
             startVoiceBtn.addEventListener('click', () => {
@@ -3153,12 +3261,25 @@
                 }
             });
 
+            // Video recording functionality
+            recordBtn.addEventListener('click', startRecording);
+            stopBtn.addEventListener('click', stopRecording);
+            downloadBtn.addEventListener('click', downloadRecording);
+
             async function startVideo() {
                 try {
-                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    videoStream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            width: 1280, 
+                            height: 720,
+                            facingMode: 'environment'
+                        }, 
+                        audio: true 
+                    });
                     liveVideo.srcObject = videoStream;
-                    // Simulate sending to backend
-                    sendVideoToBackend(videoStream);
+                    // Enable recording button
+                    recordBtn.disabled = false;
+                    recordingStatus.textContent = 'Camera ready for recording';
                 } catch (err) {
                     alert('Error accessing camera: ' + err.message);
                 }
@@ -3169,12 +3290,97 @@
                     videoStream.getTracks().forEach(track => track.stop());
                     liveVideo.srcObject = null;
                 }
+                recordBtn.disabled = true;
+                recordingStatus.textContent = '';
+            }
+
+            function startRecording() {
+                if (!videoStream) {
+                    alert('Please start the camera first');
+                    return;
+                }
+
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(videoStream, {
+                    mimeType: 'video/webm;codecs=vp9,opus'
+                });
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Enable download button
+                    downloadBtn.disabled = false;
+                    downloadBtn.setAttribute('data-url', url);
+                    
+                    recordingStatus.textContent = 'Recording saved. Ready to download.';
+                    clearInterval(timerInterval);
+                    recordingTimer.textContent = '';
+                };
+
+                mediaRecorder.start();
+                recordingStartTime = new Date();
+                
+                // Update timer
+                timerInterval = setInterval(() => {
+                    const elapsed = Math.floor((new Date() - recordingStartTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    recordingTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+
+                // Update UI
+                recordBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-flex';
+                downloadBtn.style.display = 'inline-flex';
+                recordingStatus.textContent = 'Recording in progress...';
+                recordBtn.classList.add('recording');
+            }
+
+            function stopRecording() {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    recordBtn.style.display = 'inline-flex';
+                    stopBtn.style.display = 'none';
+                    recordBtn.classList.remove('recording');
+                    recordingStatus.textContent = 'Recording stopped';
+                }
+            }
+
+            function downloadRecording() {
+                const url = downloadBtn.getAttribute('data-url');
+                if (url) {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `emergency-recording-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.webm`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    recordingStatus.textContent = 'Video downloaded successfully';
+                }
             }
 
             function sendEmergency(description) {
                 // Simulate sending to backend
-                alert(`Emergency reported: ${description}. Help is on the way! Live video streaming started.`);
-                startVideo(); // Start video on submit
+                alert(`Emergency reported: ${description}. Help is on the way!`);
+                
+                // Start video recording automatically when emergency is reported
+                if (!videoStream) {
+                    startVideo();
+                }
+                
+                // Start recording after a short delay
+                setTimeout(() => {
+                    if (videoStream && (!mediaRecorder || mediaRecorder.state !== 'recording')) {
+                        startRecording();
+                    }
+                }, 1000);
             }
 
             // Frontend simulation for backend integration
@@ -3190,5 +3396,3 @@
     </script>
 </body>
 </html>
-
-
