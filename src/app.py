@@ -43,8 +43,12 @@ def chat():
         reply = "Yes, safety first! Stick to well-lit and populated areas."
     elif "police" in user_message.lower():
         reply = "The nearest police station can be found via emergency services (dial 112/100)."
+    elif "record" in user_message.lower() or "video" in user_message.lower():
+        reply = "Starting video recording now..."
+    elif "stop" in user_message.lower() and "recording" in user_message.lower():
+        reply = "Stopping video recording and downloading..."
     else:
-        reply = "I’m your OmniDimension AI. Stay safe!"
+        reply = "I'm your OmniDimension AI. Stay safe!"
 
     return jsonify({"reply": reply})
 
@@ -69,10 +73,55 @@ def upload_video():
         video.save(file_path)
 
         print(f"[INFO] 🎬 Video saved: {filename}")
-        return jsonify({"status": "success", "file": filename})
+        return jsonify({"status": "success", "file": filename, "download_url": f"/download/{filename}"})
     except Exception as e:
         print("❌ Error saving video:", e)
         return jsonify({"status": "error", "message": str(e)}), 500
+
+# ----------------------------------------------------------------------
+# 📥 Video Download Endpoint
+# ----------------------------------------------------------------------
+@app.route("/download/<filename>", methods=["GET"])
+def download_video(filename):
+    """Download recorded video file"""
+    try:
+        return send_from_directory(RECORD_DIR, filename, as_attachment=True)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 404
+
+# ----------------------------------------------------------------------
+# 🎙️ Voice Command Processing
+# ----------------------------------------------------------------------
+@app.route("/voice_command", methods=["POST"])
+def voice_command():
+    """
+    Process voice commands for automatic video recording
+    """
+    data = request.get_json()
+    command = data.get("command", "").lower()
+    
+    response = {
+        "action": "none",
+        "message": ""
+    }
+    
+    if "start recording" in command or "record video" in command or "begin recording" in command:
+        response = {
+            "action": "start_recording",
+            "message": "Starting video recording automatically"
+        }
+    elif "stop recording" in command or "end recording" in command or "finish recording" in command:
+        response = {
+            "action": "stop_recording",
+            "message": "Stopping recording and downloading video"
+        }
+    elif "emergency" in command or "help" in command:
+        response = {
+            "action": "emergency",
+            "message": "Emergency mode activated"
+        }
+    
+    return jsonify(response)
 
 # ----------------------------------------------------------------------
 # 🌦️ AI-Powered Risk Forecast (Demo)
