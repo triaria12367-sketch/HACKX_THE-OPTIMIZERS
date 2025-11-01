@@ -93,13 +93,12 @@ The app will start at: [http://localhost:3000](http://localhost:3000)
     <td align="center"><b>🗺️ Real-Time Safe Route Map</b></td>
   </tr>
   <tr>
-   <p align="center">
-  <img src="fr1.png" width="400" alt="SafePath Screen 1"/>
-  <img src="fr2.png" width="400" alt="SafePath Screen 2"/>
-  <img src="fr5.png" width="400" alt="SafePath Screen 3"/>
-</p>
+    <td align="center"><img src="fr1.png" width="400" alt="SafePath Screen 1"/></td>
+    <td align="center"><img src="fr2.png" width="400" alt="SafePath Screen 2"/></td>
+    <td align="center"><img src="fr5.png" width="400" alt="SafePath Screen 3"/></td>
   </tr>
 </table>
+
 
 ---
 
